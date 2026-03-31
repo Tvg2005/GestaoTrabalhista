@@ -37,9 +37,17 @@ function switchTab(tab) {
   const ef=document.getElementById('ef-cpf');
   if(ef) ef.addEventListener('input',maskCPF);
 
+  // CPF mask para form de empregadores
+  const ef2=document.getElementById('ef2-cpf');
+  if(ef2) ef2.addEventListener('input',maskCPF);
+
   // Preview de cálculo inicial
   calcVale();
 
-  // Popula selects de empregado
+  // Popula listas e selects
+  renderEmployerList();
   renderEmpList();
+
+  // Preenche empregador ativo nos campos (só se vazio)
+  fillEmployerFields();
 })();

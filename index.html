@@ -199,10 +199,49 @@
 <div id="tab-emp" class="tab-content" role="tabpanel">
   <main class="container">
 
-    <!-- Header ação -->
+    <!-- ── EMPREGADORES ── -->
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
       <div>
-        <h2 style="font-size:18px;font-weight:700;">👥 Gestão de Empregados</h2>
+        <h2 style="font-size:18px;font-weight:700;">🏢 Empregadores</h2>
+        <p style="font-size:13px;color:var(--text-muted);margin-top:4px;">Somente um pode estar ativo. O ativo preenche automaticamente as abas.</p>
+      </div>
+      <button class="btn-add-emp" onclick="newEmployer()">+ Adicionar Empregador</button>
+    </div>
+
+    <!-- Formulário empregador -->
+    <div class="card emp-form-card" id="employer-form-card">
+      <div class="card-header"><div class="card-icon">🏢</div><h2 id="employer-form-title">Adicionar Empregador</h2></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="form-grid two">
+            <div class="field"><label for="ef2-nome">Nome do Empregador *</label><input id="ef2-nome" type="text" placeholder="Ex: Naiara Rizzi Venâncio Vieira" /></div>
+            <div class="field"><label for="ef2-cpf">CPF</label><input id="ef2-cpf" type="text" placeholder="000.000.000-00" maxlength="14" /></div>
+          </div>
+          <div class="form-grid two">
+            <div class="field"><label for="ef2-status">Status</label>
+              <select id="ef2-status">
+                <option value="ativo">● Ativo</option>
+                <option value="inativo">○ Inativo</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;padding-top:4px;">
+            <button class="btn-generate" style="max-width:180px;padding:12px 20px;" onclick="saveEmployerForm()">💾 Salvar</button>
+            <button class="btn-sm" style="padding:10px 18px;font-size:14px;" onclick="cancelEmployerForm()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista empregadores -->
+    <div class="emp-grid" id="employer-list"></div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:8px 0;" />
+
+    <!-- ── EMPREGADOS ── -->
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h2 style="font-size:18px;font-weight:700;">👥 Empregados</h2>
         <p style="font-size:13px;color:var(--text-muted);margin-top:4px;">Cadastre empregados para preencher automaticamente as outras abas.</p>
       </div>
       <button class="btn-add-emp" id="emp-btn-add" onclick="newEmp()">+ Adicionar Empregado</button>
@@ -257,6 +296,7 @@
 
 <!-- ── Scripts (ordem importa) ── -->
 <script src="js/utils.js"></script>
+<script src="js/employers.js"></script>
 <script src="js/employees.js"></script>
 <script src="js/ponto.js"></script>
 <script src="js/vale.js"></script>
