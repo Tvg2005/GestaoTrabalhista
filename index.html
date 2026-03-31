@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestão Trabalhista — Folha de Ponto & Vale-Transporte</title>
+  <meta name="description" content="Gere folhas de ponto e recibos de vale-transporte em PDF com preenchimento automático de feriados nacionais brasileiros." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <!-- PDF libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-badge">🗂️ Gestão Trabalhista Doméstica</div>
+  <h1>Documentos Trabalhistas</h1>
+  <p>Gere folhas de ponto e recibos de vale-transporte em PDF com preenchimento automático de feriados e finais de semana.</p>
+</header>
+
+<nav class="tab-nav" role="tablist">
+  <button class="tab-btn active" id="tab-btn-ponto" role="tab" aria-selected="true" onclick="switchTab('ponto')">
+    <span class="tab-dot"></span>📋 Folha de Ponto
+  </button>
+  <button class="tab-btn" id="tab-btn-vale" role="tab" aria-selected="false" onclick="switchTab('vale')">
+    <span class="tab-dot green"></span>🚌 Vale-Transporte
+  </button>
+  <button class="tab-btn" id="tab-btn-emp" role="tab" aria-selected="false" onclick="switchTab('emp')">
+    <span class="tab-dot purple"></span>👥 Empregados
+  </button>
+</nav>
+<div class="tab-divider"></div>
+
+<!-- ═══════════════════════════════════════
+     TAB 1 — FOLHA DE PONTO
+════════════════════════════════════════ -->
+<div id="tab-ponto" class="tab-content active" role="tabpanel">
+  <main class="container">
+
+    <!-- Seletor de empregado -->
+    <div class="emp-selector-card">
+      <label>👤 Auto-preencher:</label>
+      <select id="p-select-emp" onchange="fillPontoFromEmp()"></select>
+    </div>
+
+    <!-- Empregador -->
+    <div class="card">
+      <div class="card-header"><div class="card-icon">🏢</div><h2>Empregador(a) <span>— Dados da pessoa contratante</span></h2></div>
+      <div class="card-body">
+        <div class="form-grid two">
+          <div class="field"><label for="p-empregador-nome">Nome do Empregador</label><input id="p-empregador-nome" type="text" placeholder="Ex: Maria da Silva Santos" /></div>
+          <div class="field"><label for="p-empregador-cpf">CPF do Empregador</label><input id="p-empregador-cpf" type="text" placeholder="000.000.000-00" maxlength="14" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empregado -->
+    <div class="card">
+      <div class="card-header"><div class="card-icon">👤</div><h2>Empregado(a) <span>— Dados do trabalhador</span></h2></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="form-grid two">
+            <div class="field"><label for="p-empregado-nome">Nome do Empregado</label><input id="p-empregado-nome" type="text" placeholder="Ex: João Oliveira Pereira" /></div>
+            <div class="field"><label for="p-empregado-cpf">CPF do Empregado</label><input id="p-empregado-cpf" type="text" placeholder="000.000.000-00" maxlength="14" /></div>
+          </div>
+          <div class="form-grid two">
+            <div class="field"><label for="p-empregado-cargo">Cargo</label><input id="p-empregado-cargo" type="text" value="Empregado doméstico nos serviços gerais" /></div>
+            <div class="field"><label for="p-empregado-admissao">Data de Admissão</label><input id="p-empregado-admissao" type="date" /></div>
+          </div>
+          <div class="form-grid two">
+            <div class="field"><label for="p-empregado-jornada">Jornada de Trabalho</label><input id="p-empregado-jornada" type="text" value="40 h semanais (segunda a sexta)" /></div>
+            <div class="field"><label>Horário de Trabalho</label>
+              <div class="time-row"><input id="p-trabalho-inicio" type="time" value="08:00" /><span>às</span><input id="p-trabalho-fim" type="time" value="17:00" /></div>
+            </div>
+          </div>
+          <div class="field" style="max-width:340px;"><label>Intervalo de Almoço</label>
+            <div class="time-row"><input id="p-almoco-inicio" type="time" value="12:00" /><span>às</span><input id="p-almoco-fim" type="time" value="13:00" /></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Período -->
+    <div class="card">
+      <div class="card-header"><div class="card-icon">📅</div><h2>Período de Geração <span>— Mês/Ano inicial e final</span></h2></div>
+      <div class="card-body">
+        <div class="period-grid">
+          <div class="period-item"><h3>📌 Início</h3><div class="period-inner">
+            <div class="field"><label for="p-inicio-mes">Mês</label><select id="p-inicio-mes"></select></div>
+            <div class="field"><label for="p-inicio-ano">Ano</label><input id="p-inicio-ano" type="number" min="2000" max="2100" value="2025" /></div>
+          </div></div>
+          <div class="period-item"><h3>🏁 Fim</h3><div class="period-inner">
+            <div class="field"><label for="p-fim-mes">Mês</label><select id="p-fim-mes"></select></div>
+            <div class="field"><label for="p-fim-ano">Ano</label><input id="p-fim-ano" type="number" min="2000" max="2100" value="2025" /></div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gerar -->
+    <div class="card">
+      <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+        <button class="btn-generate" id="p-btn" onclick="generatePontoPDF()">
+          <span class="spinner" id="p-spinner"></span><span id="p-btn-text">⬇️ Gerar e Baixar Folha de Ponto (PDF)</span>
+        </button>
+        <div class="status-msg" id="p-status"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TAB 2 — VALE-TRANSPORTE
+════════════════════════════════════════ -->
+<div id="tab-vale" class="tab-content" role="tabpanel">
+  <main class="container">
+
+    <!-- Seletor de empregado -->
+    <div class="emp-selector-card">
+      <label>👤 Auto-preencher:</label>
+      <select id="v-select-emp" onchange="fillValeFromEmp()"></select>
+    </div>
+
+    <!-- Empregador -->
+    <div class="card">
+      <div class="card-header"><div class="card-icon green">🏢</div><h2>Empregador(a) <span>— Dados da pessoa contratante</span></h2></div>
+      <div class="card-body"><div class="field"><label for="v-empregador-nome">Nome do Empregador</label><input id="v-empregador-nome" type="text" placeholder="Ex: Naiara Rizzi Venâncio Vieira" /></div></div>
+    </div>
+
+    <!-- Empregado -->
+    <div class="card">
+      <div class="card-header"><div class="card-icon green">👤</div><h2>Empregado(a) <span>— Trabalhador</span></h2></div>
+      <div class="card-body"><div class="field"><label for="v-empregado-nome">Nome do Empregado</label><input id="v-empregado-nome" type="text" placeholder="Ex: Andressa Silva Alves" /></div></div>
+    </div>
+
+    <!-- Dados do vale -->
+    <div class="card">
+      <div class="card-header"><div class="card-icon green">🚌</div><h2>Dados do Vale-Transporte <span>— Valores e período</span></h2></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="form-grid two">
+            <div class="field"><label for="v-valor-unitario">Valor do Vale-Transporte (R$)</label><input id="v-valor-unitario" type="number" min="0" step="0.01" placeholder="Ex: 6.75" oninput="calcVale()" /></div>
+            <div class="field"><label for="v-data-pagamento">Data do Pagamento</label><input id="v-data-pagamento" type="date" /></div>
+          </div>
+          <div class="form-grid two">
+            <div class="field"><label for="v-mes-ref">Mês de Referência</label><select id="v-mes-ref" onchange="calcVale()"></select></div>
+            <div class="field"><label for="v-ano-ref">Ano de Referência</label><input id="v-ano-ref" type="number" min="2000" max="2100" value="2025" oninput="calcVale()" /></div>
+          </div>
+          <div class="form-grid two">
+            <div class="field"><label for="v-dias-falta">Dias de Falta no Mês</label><input id="v-dias-falta" type="number" min="0" value="0" oninput="calcVale()" /></div>
+          </div>
+          <div class="field">
+            <label for="v-comprovante">Comprovante de Pagamento (PDF) — opcional</label>
+            <div class="file-upload" id="v-file-area" onclick="document.getElementById('v-comprovante').click()">
+              <span class="file-icon">📎</span>
+              <span id="v-file-label">Clique para anexar o comprovante em PDF (combinado na mesma página)</span>
+              <input id="v-comprovante" type="file" accept=".pdf,application/pdf" style="display:none" onchange="onComprovanteChange(this)" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="card">
+      <div class="card-header"><div class="card-icon green">🧮</div><h2>Resumo do Recibo <span>— Calculado automaticamente</span></h2></div>
+      <div class="card-body">
+        <div class="info-box">
+          <div class="info-row"><span class="info-label">Dias úteis no mês</span><span class="info-value" id="v-dias-uteis">—</span></div>
+          <div class="info-row"><span class="info-label">Dias de falta</span><span class="info-value" id="v-faltas-display">—</span></div>
+          <div class="info-row"><span class="info-label">Dias trabalhados</span><span class="info-value" id="v-dias-trab">—</span></div>
+          <div class="info-row"><span class="info-label">Quantidade de Vales (2 × dias trab.)</span><span class="info-value accent" id="v-qtd-vales">—</span></div>
+          <div class="info-row"><span class="info-label">Valor Total</span><span class="info-value green" id="v-total">—</span></div>
+          <div class="info-extenso" id="v-extenso">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gerar -->
+    <div class="card">
+      <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+        <button class="btn-generate green-btn" id="v-btn" onclick="generateValePDF()">
+          <span class="spinner" id="v-spinner"></span><span id="v-btn-text">⬇️ Gerar e Baixar Recibo de Vale-Transporte (PDF)</span>
+        </button>
+        <div class="status-msg" id="v-status"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TAB 3 — EMPREGADOS
+════════════════════════════════════════ -->
+<div id="tab-emp" class="tab-content" role="tabpanel">
+  <main class="container">
+
+    <!-- Header ação -->
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h2 style="font-size:18px;font-weight:700;">👥 Gestão de Empregados</h2>
+        <p style="font-size:13px;color:var(--text-muted);margin-top:4px;">Cadastre empregados para preencher automaticamente as outras abas.</p>
+      </div>
+      <button class="btn-add-emp" id="emp-btn-add" onclick="newEmp()">+ Adicionar Empregado</button>
+    </div>
+
+    <!-- Formulário (oculto a princípio) -->
+    <div class="card emp-form-card" id="emp-form-card">
+      <div class="card-header"><div class="card-icon purple">✏️</div><h2 id="emp-form-title">Adicionar Empregado</h2></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="form-grid two">
+            <div class="field"><label for="ef-nome">Nome Completo *</label><input id="ef-nome" type="text" placeholder="Ex: Andressa Silva Alves" /></div>
+            <div class="field"><label for="ef-cpf">CPF</label><input id="ef-cpf" type="text" placeholder="000.000.000-00" maxlength="14" /></div>
+          </div>
+          <div class="form-grid two">
+            <div class="field"><label for="ef-cargo">Cargo</label><input id="ef-cargo" type="text" value="Empregado doméstico nos serviços gerais" /></div>
+            <div class="field"><label for="ef-status">Status</label>
+              <select id="ef-status">
+                <option value="ativo">● Ativo</option>
+                <option value="inativo">○ Inativo</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid two">
+            <div class="field"><label for="ef-admissao">Data de Admissão</label><input id="ef-admissao" type="date" /></div>
+            <div class="field"><label for="ef-desligamento">Data de Desligamento</label><input id="ef-desligamento" type="date" /></div>
+          </div>
+          <div class="form-grid two">
+            <div class="field"><label for="ef-jornada">Jornada de Trabalho</label><input id="ef-jornada" type="text" value="40 h semanais (segunda a sexta)" /></div>
+            <div class="field"><label>Horário de Trabalho</label>
+              <div class="time-row"><input id="ef-trab-ini" type="time" value="08:00" /><span>às</span><input id="ef-trab-fim" type="time" value="17:00" /></div>
+            </div>
+          </div>
+          <div class="field" style="max-width:340px;"><label>Intervalo de Almoço</label>
+            <div class="time-row"><input id="ef-alm-ini" type="time" value="12:00" /><span>às</span><input id="ef-alm-fim" type="time" value="13:00" /></div>
+          </div>
+          <div style="display:flex;gap:10px;padding-top:4px;">
+            <button class="btn-generate purple-btn" style="max-width:200px;padding:12px 20px;" onclick="saveEmpForm()">💾 Salvar</button>
+            <button class="btn-sm" style="padding:10px 18px;font-size:14px;" onclick="cancelEmpForm()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de empregados -->
+    <div class="emp-grid" id="emp-list">
+      <!-- Renderizado por JS -->
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Scripts (ordem importa) ── -->
+<script src="js/utils.js"></script>
+<script src="js/employees.js"></script>
+<script src="js/ponto.js"></script>
+<script src="js/vale.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
